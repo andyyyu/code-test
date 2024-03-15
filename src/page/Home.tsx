@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchArtworkList } from "../API";
 import { ArtWork } from "../components/ArtWork";
-import { Button, Flex, Input, Pagination } from "@mantine/core";
+import { Button, Flex, Input, Loader, Pagination } from "@mantine/core";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -17,7 +17,7 @@ export function Home() {
 		}
 	}, [pageParam, navigate]);
 
-	const [page, onPageChange] = useState(1);
+	const [page, onPageChange] = useState(Number(pageParam));
 	const [title, onTitleChange] = useState("");
 
 	const arkworks = useQuery({
@@ -40,15 +40,28 @@ export function Home() {
 				placeholder="search here"
 			/>
 			<Button onClick={invalidateQueries}>Search</Button>
-			<Flex wrap="wrap" gap="md">
-				{arkworks.data?.list.map(({ id, title, thumbnail }) => (
-					<ArtWork key={id} thumbnail={thumbnail} title={title} id={id} />
-				))}
-			</Flex>
+			{arkworks.isFetching ? (
+				<Loader color="blue" />
+			) : (
+				<Flex wrap="wrap" gap="md">
+					{arkworks.data?.list.map(({ id, title, thumbnail }) => (
+						<ArtWork
+							onClick={() => navigate(`/detail/${id}`)}
+							key={id}
+							thumbnail={thumbnail}
+							title={title}
+							id={id}
+						/>
+					))}
+				</Flex>
+			)}
 			<Pagination
 				total={arkworks.data?.totalPage || 1}
 				value={page}
-				onChange={onPageChange}
+				onChange={(page) => {
+					onPageChange(page);
+					navigate(`/${page}`);
+				}}
 			/>
 		</div>
 	);
